@@ -1,10 +1,19 @@
 import re
 from datetime import datetime
-import os
 import pickle
 
 
 year_actual = datetime.now().year
+
+def crearArch():
+  with open('asistentes.txt', 'a'):
+    pass
+
+  with open('registros.txt', 'a'):
+    pass
+
+  with open('asistencias.txt', 'a'):
+    pass
 
 class archivos:
     objeto = ''
@@ -15,7 +24,6 @@ class archivos:
         self.archivo = archivo
 
     def guardarAr(self, objeto='', archivo=''):
-        respaldar = False
         try:
             with open(archivo, 'a') as f:
                 for clave, valores in objeto.items():
@@ -57,26 +65,25 @@ class archivos:
         for clave, valores in diccionario.items():
           linea = f"{clave}: {', '.join(valores)}\n"
           f.write(linea)
-      
+
     def modificar(self, nomAr, diccionario):
       with open(nomAr, "w+") as f:
         for clave, valores in diccionario.items():
           linea = f"{clave}: {', '.join(valores)}\n"
           f.write(linea)
-          
-          
+
+
 class Acciones():
-  
+
   def __init__(self):
         self.year_actual = datetime.now().year
-        # self.contador_asistentes = 1
-        # self.contador_registros = 1
-        self.diccAsistentes = {}
-        self.diccRegistros = {}
-        self.diccAsistencias = {}
+        self.a = archivos()
+        self.diccAsistentes = self.a.leer('asistentes.txt')
+        self.diccRegistros = self.a.leer('registros.txt')
+        self.diccAsistencias = self.a.leer('asistencias.txt')
         self.fecha = None
         self.carrera = None
-        
+
         # Menus
         self.opciones_menu_principal={
             'A':'Acciones datos del asistente',
@@ -98,7 +105,7 @@ class Acciones():
             'D':'Consultar asistente',
             'X':'Regresar al menú principal\n'
         }
-        
+
         # Representación de auditorios en un diccionario.
         self.auditorios = {
             'A': ['Gumersindo Cantú Hinojosa', 1000],
@@ -116,7 +123,7 @@ class Acciones():
             3:['05/11/2023 14:00','Industria 4.0 retos y oportunidades',
                 'Dra. Monica Hernández','C', 20],
             4:['05/11/2023 19:00','Machine Learning for a better world',
-                'Dr. Janick Jameson','C', 0], 
+                'Dr. Janick Jameson','C', 0],
             5:['06/11/2023 15:00','Retos de la Banca Electrónica en México',
                 'Ing. Clara Benavides','A', 0]
         }
@@ -129,14 +136,9 @@ class Acciones():
             'LNI': 'LICENCIADO EN NEGOCIOS INTERNACIONALES',
             'LGRS': 'LICENCIADO EN GESTIÓN DE RESPONSABILIDAD SOCIAL'
         }
-        
-        with open('asistentes.txt', 'a'):
-            pass
-        self.a = archivos()
-        self.diccAsistentes = self.a.leer('asistentes.txt')
-        self.asistentes = {}
-        # self.contador_asistentes = 1    
-        
+
+        # self.contador_asistentes = 1
+
   def elegir_letra(self, prompt='Dame una letra: ', opciones_validas='12345'):
       while True:
           opcion = input(prompt)
@@ -165,7 +167,7 @@ class Acciones():
 
       opc=self.elegir_letra('¿Qué opción deseas?: ', opciones_validas).upper()
       return opc
-    
+
   # print(mostrar_menu({'A':'Hola', 'B':'Adios'}))
 
   #---------------- VALIDACIONES ASISTENTES -----------------#
@@ -231,41 +233,31 @@ class Acciones():
               continue
           return self.carrera
 
-  # contador_asistentes = 1
-  # with open('asistentes.txt', 'a'):
-  #     # No necesitas realizar ninguna operación dentro del bloque
-  #     pass
-  # a = archivos()
-
-  # diccAsistentes = a.leer('asistentes.txt')
-  # asistentes = {}
-
-
   def agregar_asistente(self):
+        asistentes={}
         while True:
             matricula = self.matricula_validacion()
             if matricula in self.diccAsistentes:
                 print('Error. Matrícula ya registrada. Intenta con una nueva matrícula.')
-                continue    
+                continue
             break
         nombre = self.nombres_validacion('Ingresa el nombre\n')
         apellido1 = self.nombres_validacion('Ingresa el primer apellido\n')
         apellido2 = self.nombres_validacion('Ingresa el segundo apellido\n')
         fech_nac = self.nacimiento_validacion()
         carrera = self.carrera_validacion()
-        
+
         asistente = [matricula, nombre, apellido1, apellido2, fech_nac, carrera]
-        
-        self.asistentes[matricula] = [matricula, nombre, apellido1, apellido2, fech_nac, carrera]  
-        
-        a = archivos()
-        a.guardarAr(self.asistentes, 'asistentes.txt') 
+
+        asistentes[matricula] = [matricula, nombre, apellido1, apellido2, fech_nac, carrera]
+
+        self.a.guardarAr(asistentes, 'asistentes.txt')
         return asistente
-    
+
 
   def consultar_asistente(self, prompt:str='Ingresa la matrícula del asistente a buscar: '):
       while True:
-          matricula = self.matricula_validacion(prompt) 
+          matricula = self.matricula_validacion(prompt)
 
           if matricula not in self.diccAsistentes:
               print(f'Error. No se encontró ningún asistente con la matrícula {matricula}. Intenta con otra matrícula.')
@@ -287,10 +279,9 @@ class Acciones():
                 print('\nAsistente encontrado')
                 while True:
                     confirmacion = input('¿Deseas proseguir con la eliminación? S/N \n').upper()
-                    if confirmacion == 'S': 
+                    if confirmacion == 'S':
                         self.diccAsistentes.pop(matricula)
-                        a = archivos()
-                        a.eliminar('asistentes.txt', self.diccAsistentes)
+                        self.a.eliminar('asistentes.txt', self.diccAsistentes)
                         print('\nAsistente eliminado con éxito.')
                         return
                     elif confirmacion == 'N':
@@ -326,24 +317,6 @@ class Acciones():
             break
 
   # --------------------------- CRUD CONFERENCIAS ---------------------------------
-  # with open('registros.txt', 'a'):
-  #     # No necesitas realizar ninguna operación dentro del bloque
-  #     pass
-  # r = archivos()
-
-  # diccRegistros = r.leer('registros.txt')
-
-  # with open('asistencias.txt', 'a'):
-  #     # No necesitas realizar ninguna operación dentro del bloque
-  #     pass
-  # asis = archivos()
-  # diccAsistencias = asis.leer('registros.txt')
-
-  registros = {}
-  asistencias = {}
-
-  # VALIDACION
-  # Se valida que se haya ingresado una conferencia valida
 
   def conferencia_validacion(self, prompt:int='Ingresa la conferencia\n'):
       while True:
@@ -382,30 +355,24 @@ class Acciones():
       print(f'Lugares disponibles: {lugares_disponibles:,}')
       print(f'\n{"*"*40}')
       return lugares_disponibles
-    
-  contador_registros = 1
+
 
   # INSCRIPCIÓN
   # Se procede con la inscripción si la conferencia es válida y hay lugares disponibles
   def inscribir(self, prompt='Ingresa la conferencia a inscribir\n', prompt2='\nIngresa la matrícula del asistente\n'):
-        with open('registros.txt', 'a'):
-            # No necesitas realizar ninguna operación dentro del bloque
-            pass
-        r = archivos()
+        try:
+          claves = list(self.diccRegistros.keys())
+          ultimo_indice = len(claves) - 1
+          contador_registros = int(claves[ultimo_indice]) + 1
+        except:
+          contador_registros=1
 
-        diccRegistros = r.leer('registros.txt')
 
-        with open('asistencias.txt', 'a'):
-            # No necesitas realizar ninguna operación dentro del bloque
-            pass
-        asis = archivos()
-        diccAsistencias = asis.leer('registros.txt')
-
-        diccAsistentes = self.a.leer('asistentes.txt')  # assuming 'a' is an instance attribute of type 'archivos'
+        registros = {}
         while True:
             conferencia_destino = self.conferencia_validacion(prompt)
             asistente = self.matricula_validacion(prompt2)
-            if asistente not in diccAsistentes:
+            if asistente not in self.diccAsistentes:
                 print('Error. No existe el asistente en la lista de asistentes.')
                 op1 = input('¿Deseas intentarlo con otro asistente? S/N\n').upper()
                 if op1 == 'N':
@@ -415,7 +382,7 @@ class Acciones():
                     continue
             duplicado = False
             for registro in self.diccRegistros.values():
-                if registro[0] == asistente and registro[1] == conferencia_destino:
+                if registro[0] == asistente and registro[1] == str(conferencia_destino):
                     print('Asistente ya registrado a esta conferencia.')
                     duplicado = True
             if duplicado:
@@ -424,16 +391,21 @@ class Acciones():
             ocupados = self.conferencias.get(conferencia_destino)
             ocupados[4] += 1
 
-            self.diccRegistros[str(Acciones.contador_registros)] = [asistente, str(conferencia_destino)]
-            Acciones.contador_registros += 1
-            self.a.guardarAr(self.diccRegistros, 'registros.txt')
+            registros[str(contador_registros)] = [asistente, str(conferencia_destino)]
+
+            self.a.guardarAr(registros, 'registros.txt')
             print(f'Asistente {asistente} registrado a la conferencia {conferencia_destino}')
-            print(self.diccRegistros)
             return conferencia_destino
-  
-  contador_asistencias = 1
 
   def confirmar_asistencia(self, prompt='Ingresa la conferencia\n', prompt2='Ingresa la matrícula del asistente\n'):
+      try:
+        claves = list(self.diccAsistencias.keys())
+        ultimo_indice = len(claves) - 1
+        contador_asistencias = int(claves[ultimo_indice]) + 1
+      except:
+        contador_asistencias=1
+
+      asistencias = {}
       while True:
           conferencia = self.conferencia_validacion(prompt)
           asistente = self.matricula_validacion(prompt2)
@@ -453,18 +425,17 @@ class Acciones():
               print('No existe registro previo con esa matrícula.')
               return
           for asistencia in self.diccAsistencias.values():
-              if asistencia[0] == asistente and asistencia[1] == conferencia:
+              if asistencia[0] == asistente and asistencia[1] == str(conferencia):
                   print('Asistencia ya registrada a esta conferencia.')
                   duplicado = True
           if duplicado:
               break
 
-          self.diccAsistencias[Acciones.contador_asistencias] = [asistente, str(conferencia)]
-          self.asis.guardarAr(self.diccAsistencias, 'asistencias.txt')
-          Acciones.contador_asistencias += 1
+          asistencias[contador_asistencias] = [asistente, str(conferencia)]
+          self.a.guardarAr(asistencias, 'asistencias.txt')
+
           print(f'Asistencia registrada a la conferencia {conferencia}')
           return conferencia
-        
 
   def eliminar_registro_conferencia(self, prompt='Ingresa la conferencia\n', prompt2='\nIngresa la matrícula del asistente\n'):
       while True:
@@ -478,7 +449,7 @@ class Acciones():
                       confirmacion = input('¿Deseas proseguir con la eliminación? S/N \n').upper()
                       if confirmacion == 'S':
                           registros.pop(key)
-                          self.r.eliminar('registros.txt', registros)
+                          self.a.eliminar('registros.txt', registros)
                           print('\nRegistro eliminado con éxito.')
                           return
                       elif confirmacion == 'N':
@@ -488,7 +459,7 @@ class Acciones():
                           continue
           print('\nRegistro no encontrado.')
           break
-              
+
 
 class Generales():
 
@@ -497,7 +468,12 @@ class Generales():
         conferencia_deseada = acciones.conferencia_validacion(conferencia_deseada)
         datos_conferencia = acciones.conferencias.get(conferencia_deseada, '')
         capacidad_auditorio = acciones.auditorios.get(datos_conferencia[3], '')[1]
-        lugares_disponibles = capacidad_auditorio - len(acciones.diccRegistros)
+        lugaresOcupados = 0
+
+        for valor in acciones.diccRegistros.values():
+            if valor[1] == str(conferencia_deseada):
+                lugaresOcupados += 1
+        lugares_disponibles = capacidad_auditorio - lugaresOcupados
         return lugares_disponibles
 
 
@@ -557,16 +533,23 @@ class Generales():
       else:
           print('No se generó la constancia de participación porque no cumple con 3 o más asistencias')
 
+
+
 # EJECUCIÓN PRINCIPAL
 
-accion = Acciones()
-general = Generales()
+crearArch()
 
 while True: # Menú principal
+    #se hacen las instancias dentro de los ciclos para que los diccionarios leidos de los archivos se actualicen cada que se agregue,
+    #modifique o elimine algo
+    accion = Acciones()
+    general = Generales()
     opcion_elegida=accion.mostrar_menu(accion.opciones_menu_principal, '\n** MENÚ PRINCIPAL\n')
     match opcion_elegida:
-        case 'A': #'A':'Registrar un asistente'
+        case 'A':
             while True:
+                accion = Acciones()
+                general = Generales()
                 opcion_elegida_asistente=accion.mostrar_menu(accion.opciones_menu_asistentes, '\n** MENÚ ASISTENTES\n')
                 match opcion_elegida_asistente:
                     case 'A':
@@ -577,28 +560,28 @@ while True: # Menú principal
                     case 'C':
                         accion.modificar_asistente()
                     case 'D':
-                        accion.consultar_asistente()
+                        print(accion.consultar_asistente())
                     case 'X':
                         print('Regresando al menú principal...')
                         break
                     case _:
                         print('Opción no reconocida.')
                         continue
-        case 'B': #    'B':'Registrar asistente a un evento',
-            accion.inscribir() 
-            print(f'Registros actuales:{accion.registros}')
-        case 'C': #    'C':'Registrar asistencia al evento',
+        case 'B':
+            accion.inscribir()
+            print(f'Registros actuales:{accion.diccRegistros}')
+        case 'C':
             accion.confirmar_asistencia()
-            print(f'Asistencias actuales:{accion.asistencias}')
-        case 'D': #    'D':'Ver eventos del alumno',
+            print(f'Asistencias actuales:{accion.diccAsistencias}')
+        case 'D':
             general.conferencias_registradas_asistente()
-        case 'E': #    'E':'Ver cantidad de asientos disponible',
+        case 'E':
 
             disponibles = general.asientos_disponibles()
             print(f'Asientos disponibles: {disponibles}')
-        case 'F': #    'F':'Eliminar registro de asistente a evento',
+        case 'F':
             accion.eliminar_registro_conferencia()
-        case 'G': # Consultar información conferencia
+        case 'G':
             accion.info_disponibilidad()
         case 'H':
             general.constancia()
